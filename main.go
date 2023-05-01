@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"runtime/debug"
 	"strconv"
 	"sync"
 	"time"
@@ -18,6 +19,8 @@ import (
 	"github.com/itchyny/gojq"
 	"go.uber.org/ratelimit"
 )
+
+var Version = "devel"
 
 var (
 	dry             = flag.Bool("dry", false, "dry run (only print messages that would be processed)")
@@ -33,7 +36,10 @@ var (
 	attributeFilter = flag.String("attribute-filter", "", "filter messages by a certain attribute using JQ expression")
 	rateLimit       = flag.Int("rate-limit", 10, "Max number of messages processed per second")
 	pollingDuration = flag.Duration("polling-duration", 30*time.Second, "Polling duration")
+	version         = flag.Bool("version", false, "Print version and exit")
+)
 
+var (
 	after           time.Time
 	before          time.Time
 	attributesQuery *gojq.Code
@@ -45,8 +51,15 @@ const maxSQSBatchSize = 10
 func main() {
 	flag.Parse()
 
+	if *version {
+		printVersion()
+		return
+	}
+
 	if err := validateFlags(); err != nil {
+		printVersion()
 		fmt.Println(err)
+		fmt.Println()
 		flag.Usage()
 		return
 	}
@@ -76,6 +89,12 @@ func main() {
 	wg.Wait()
 
 	log.Println("Finished processing")
+}
+
+func printVersion() {
+	if buildInfo, ok := debug.ReadBuildInfo(); ok {
+		fmt.Printf("%s@%s %s\n", buildInfo.Path, Version, buildInfo.GoVersion)
+	}
 }
 
 func validateFlags() error {
