@@ -1,6 +1,6 @@
 # aws-sqs-filter-redrive
+[![Donate!](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=D5KHS5GJPJ5PQ&currency_code=BRL&source=url)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnatenho%2Faws-sqs-filter-redrive.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnatenho%2Faws-sqs-filter-redrive?ref=badge_shield)
-
 
 `aws-sqs-filter-redrive` is a tool to selectively redrive Amazon Simple Queue Service (SQS) messages based on their content. With this tool, you can get and filter messages from a queue based on their attributes or JSON body fields, and then move or delete them to a new queue.
 
