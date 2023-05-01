@@ -14,7 +14,7 @@ builds:
       - CGO_ENABLED=0
     ldflags: >
       -s -w
-      -X main.Version={{.Version}}
+      -X github.com/natenho/aws-sqs-filter-redrive/main.Version={{.Version}}
 archives:
   - id: aws-sqs-filter-redrive
     builds: [ aws-sqs-filter-redrive ]
