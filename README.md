@@ -6,6 +6,10 @@
 
 ## Installation
 
+[Download the latest binaries](https://github.com/natenho/aws-sqs-filter-redrive/releases/latest) and run
+
+Or install via go install
+
 ```bash
 go install github.com/natenho/aws-sqs-filter-redrive@latest
 ```
