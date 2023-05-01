@@ -27,7 +27,7 @@ var (
 	sourceQueue     = flag.String("source", "", "the queue URL, e.g. https://sqs.us-east-1.amazonaws.com/123456789012/my-queue")
 	beforeFilter    = flag.String("before", "", "get only messages sent before a certain date in format 2006-01-02T15:04:05Z07:00")
 	afterFilter     = flag.String("after", "", "get only messages sent after a certain date in format 2006-01-02T15:04:05Z07:00")
-	numMessages     = flag.Int("count", 0, "number of messages to delete")
+	numMessages     = flag.Int("count", 0, "maximum number of messages to process")
 	numWorkers      = flag.Int("workers", 8, "number of workers")
 	bodyFilter      = flag.String("body-filter", "", "filter messages by JSON body field content using JQ expression")
 	attributeFilter = flag.String("attribute-filter", "", "filter messages by a certain attribute using JQ expression")
