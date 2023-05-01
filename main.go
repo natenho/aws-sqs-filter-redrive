@@ -20,8 +20,11 @@ import (
 	"go.uber.org/ratelimit"
 )
 
-var Version = "devel"
-
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
 var (
 	dry             = flag.Bool("dry", false, "dry run (only print messages that would be processed)")
 	delete          = flag.Bool("delete", false, "delete messages from source queue")
@@ -36,7 +39,7 @@ var (
 	attributeFilter = flag.String("attribute-filter", "", "filter messages by a certain attribute using JQ expression")
 	rateLimit       = flag.Int("rate-limit", 10, "Max number of messages processed per second")
 	pollingDuration = flag.Duration("polling-duration", 30*time.Second, "Polling duration")
-	version         = flag.Bool("version", false, "Print version and exit")
+	versionFlag     = flag.Bool("version", false, "Print version and exit")
 )
 
 var (
@@ -51,7 +54,7 @@ const maxSQSBatchSize = 10
 func main() {
 	flag.Parse()
 
-	if *version {
+	if *versionFlag {
 		printVersion()
 		return
 	}
@@ -93,7 +96,7 @@ func main() {
 
 func printVersion() {
 	if buildInfo, ok := debug.ReadBuildInfo(); ok {
-		fmt.Printf("%s@%s %s\n", buildInfo.Path, Version, buildInfo.GoVersion)
+		fmt.Printf("%s@%s commit %s (%s) %s\n", buildInfo.Path, version, commit, date, buildInfo.GoVersion)
 	}
 }
 
