@@ -12,8 +12,6 @@ builds:
         goarch: arm
     env:
       - CGO_ENABLED=0
-    ldflags: >
-      -s -w
 archives:
   - id: aws-sqs-filter-redrive
     builds: [ aws-sqs-filter-redrive ]
