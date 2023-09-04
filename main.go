@@ -256,6 +256,7 @@ func deleteSQSMessages(ctx context.Context, batch []types.Message, sqsClient *sq
 
 	if err != nil {
 		log.Printf("Error deleting message: %v", err)
+		return
 	}
 
 	log.Printf("Deleted %d Failed %d", len(result.Successful), len(result.Failed))
