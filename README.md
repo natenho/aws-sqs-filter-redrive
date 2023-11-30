@@ -82,7 +82,7 @@ aws-sqs-filter-redrive \
 aws-sqs-filter-redrive \
   -source https://sqs.us-east-1.amazonaws.com/123456789012/source-queue \
   -delete \
-  -message-attribute-filter '.jenkinsJobName.StringValue == "/Application/sqs_evv_export_dispatcher"' \
+  -message-attribute-filter '.AttributeName.StringValue == "AttributeValue"' \
   -count 10000 -polling-duration 60s
 ```
 
