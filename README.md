@@ -35,6 +35,7 @@ Here are the available options:
 - `-after`: Get only messages sent after a certain date in format 2006-01-02T15:04:05Z07:00.
 - `-attribute-filter`: Filter messages by a certain attribute using JQ expression.
 - `-body-filter`: Filter messages by JSON body field content using JQ expression.
+- `-message-attribute-filter`: Filter messages by message attribute using JQ expression.
 
 ### Examples
 
@@ -74,6 +75,15 @@ aws-sqs-filter-redrive \
   -source https://sqs.us-east-1.amazonaws.com/123456789012/source-queue \
   -delete \
   -attribute-filter '.AttributeName == "AttributeValue"'
+```
+
+#### Delete messages from a queue based on a message attribute. Message attributes have different value types, so you need to specify the type of the value you are filtering.
+```bash
+aws-sqs-filter-redrive \
+  -source https://sqs.us-east-1.amazonaws.com/123456789012/source-queue \
+  -delete \
+  -message-attribute-filter '.AttributeName.StringValue == "AttributeValue"' \
+  -count 10000 -polling-duration 60s
 ```
 
 ## Contributing

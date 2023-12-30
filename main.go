@@ -26,27 +26,29 @@ var (
 	date    = "unknown"
 )
 var (
-	dry             = flag.Bool("dry", false, "dry run (only print messages that would be processed)")
-	delete          = flag.Bool("delete", false, "delete messages from source queue")
-	move            = flag.Bool("move", false, "move messages from source queue to target queue")
-	targetQueue     = flag.String("target", "", "the queue URL, e.g. https://sqs.us-east-1.amazonaws.com/123456789012/my-queue")
-	sourceQueue     = flag.String("source", "", "the queue URL, e.g. https://sqs.us-east-1.amazonaws.com/123456789012/my-queue")
-	beforeFilter    = flag.String("before", "", "get only messages sent before a certain date in format 2006-01-02T15:04:05Z07:00")
-	afterFilter     = flag.String("after", "", "get only messages sent after a certain date in format 2006-01-02T15:04:05Z07:00")
-	numMessages     = flag.Int("count", 0, "maximum number of messages to process")
-	numWorkers      = flag.Int("workers", 8, "number of workers")
-	bodyFilter      = flag.String("body-filter", "", "filter messages by JSON body field content using JQ expression")
-	attributeFilter = flag.String("attribute-filter", "", "filter messages by a certain attribute using JQ expression")
-	rateLimit       = flag.Int("rate-limit", 10, "Max number of messages processed per second")
-	pollingDuration = flag.Duration("polling-duration", 30*time.Second, "Polling duration")
-	versionFlag     = flag.Bool("version", false, "Print version and exit")
+	dry                    = flag.Bool("dry", false, "dry run (only print messages that would be processed)")
+	delete                 = flag.Bool("delete", false, "delete messages from source queue")
+	move                   = flag.Bool("move", false, "move messages from source queue to target queue")
+	targetQueue            = flag.String("target", "", "the queue URL, e.g. https://sqs.us-east-1.amazonaws.com/123456789012/my-queue")
+	sourceQueue            = flag.String("source", "", "the queue URL, e.g. https://sqs.us-east-1.amazonaws.com/123456789012/my-queue")
+	beforeFilter           = flag.String("before", "", "get only messages sent before a certain date in format 2006-01-02T15:04:05Z07:00")
+	afterFilter            = flag.String("after", "", "get only messages sent after a certain date in format 2006-01-02T15:04:05Z07:00")
+	numMessages            = flag.Int("count", 0, "maximum number of messages to process")
+	numWorkers             = flag.Int("workers", 8, "number of workers")
+	bodyFilter             = flag.String("body-filter", "", "filter messages by JSON body field content using JQ expression")
+	attributeFilter        = flag.String("attribute-filter", "", "filter messages by a certain attribute using JQ expression")
+	messageAttributeFilter = flag.String("message-attribute-filter", "", "filter messages by a certain message attribute using JQ expression")
+	rateLimit              = flag.Int("rate-limit", 10, "Max number of messages processed per second")
+	pollingDuration        = flag.Duration("polling-duration", 30*time.Second, "Polling duration")
+	versionFlag            = flag.Bool("version", false, "Print version and exit")
 )
 
 var (
-	after           time.Time
-	before          time.Time
-	attributesQuery *gojq.Code
-	bodyQuery       *gojq.Code
+	after                  time.Time
+	before                 time.Time
+	attributesQuery        *gojq.Code
+	bodyQuery              *gojq.Code
+	messageAttributesQuery *gojq.Code
 )
 
 const maxSQSBatchSize = 10
@@ -122,6 +124,13 @@ func validateFlags() error {
 		if err != nil {
 			return fmt.Errorf("Invalid attribute filter %w", err)
 
+		}
+	}
+
+	if *messageAttributeFilter != "" {
+		messageAttributesQuery, err = parseAndCompileJQ(*messageAttributeFilter)
+		if err != nil {
+			return fmt.Errorf("Invalid message attribute filter %w", err)
 		}
 	}
 
@@ -239,7 +248,7 @@ func filterBatch(polledBatch []types.Message) []types.Message {
 
 func printSQSMessages(batch []types.Message) {
 	for _, msg := range batch {
-		log.Printf("SentTimestamp:%v Attributes: %v Body: %v\n", getTimestamp(msg), toJSONMap(msg.Attributes), *msg.Body)
+		log.Printf("SentTimestamp:%v\n Attributes: %v\n MessageAttributes: %v\n Body: %v\n", getTimestamp(msg), toJSONMap(msg.Attributes), toJSONMap(msg.MessageAttributes), *msg.Body)
 	}
 }
 
@@ -312,6 +321,10 @@ func shouldProcessMessage(msg types.Message) bool {
 		return false
 	}
 
+	if messageAttributesQuery != nil && !matchesJqQuery(toJSONMap(msg.MessageAttributes), messageAttributesQuery) {
+		return false
+	}
+
 	if bodyQuery != nil && !matchesJqQuery(toJSONMap(msg.Body), bodyQuery) {
 		return false
 	}
@@ -370,9 +383,10 @@ func toJSONMap(input any) (jsonMap map[string]any) {
 
 func pollForMessageBatch(ctx context.Context, sqsClient *sqs.Client) ([]types.Message, error) {
 	result, err := sqsClient.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
-		QueueUrl:            aws.String(*sourceQueue),
-		MaxNumberOfMessages: maxSQSBatchSize,
-		AttributeNames:      []types.QueueAttributeName{types.QueueAttributeNameAll},
+		QueueUrl:              aws.String(*sourceQueue),
+		MaxNumberOfMessages:   maxSQSBatchSize,
+		AttributeNames:        []types.QueueAttributeName{types.QueueAttributeNameAll},
+		MessageAttributeNames: []string{string(types.QueueAttributeNameAll)},
 	})
 
 	if err != nil {
